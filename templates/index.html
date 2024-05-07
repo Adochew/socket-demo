@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}
+home
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-6">
+            <div class="card">
+                <div class="card-header">ChatGPT Style Chat</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <!-- Server -->
+                        <div class="d-flex justify-content-start">
+                            <div class="bg-light p-2 rounded">
+                                <p class="mb-0">Hello, how can I help you today?</p>
+                            </div>
+                        </div>
+                        <!-- Client -->
+                        <div class="d-flex justify-content-end">
+                            <div class="bg-primary text-white p-2 rounded">
+                                <p class="mb-0">I'm looking for assistance with my project.</p>
+                            </div>
+                        </div>
+                        <!-- 更多消息可以继续在这里添加 -->
+                    </div>
+                </div>
+                <div class="card-footer text-muted">
+                    <form class="d-flex">
+                        <input type="text" class="form-control me-2" placeholder="Type your message...">
+                        <button type="button" class="btn btn-primary">Send</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
