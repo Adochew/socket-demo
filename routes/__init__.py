@@ -8,4 +8,4 @@ app = Flask(__name__,
 # app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqldb://root:123456@localhost/socket_db'
 # db = SQLAlchemy(app)
 
-from routes import user_routes
+from routes import user_routes, chat_routes

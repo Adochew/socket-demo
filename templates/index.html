@@ -4,23 +4,55 @@
 home
 {% endblock %}
 
+{% block script %}
+<script src="/assets/js/chat.js"></script>
+<style>
+    .chat-container {
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    .message-box {
+        max-width: 80%;
+    }
+    .text-area-container {
+        position: relative;
+        display: flex;
+    }
+    .resize-none {
+        resize: none;
+        overflow: hidden;
+        height: auto;
+        min-height: 38px;
+    }
+    .send-btn {
+        position: absolute;
+        right: 5px;
+        bottom: 4px;
+        height: 30px;
+        padding: initial;
+        padding-left: 4px;
+        padding-right: 4px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
+<div class="container mt-4">
     <div class="row justify-content-center">
-        <div class="col-6">
+        <div class="col-8">
             <div class="card">
                 <div class="card-header">ChatGPT Style Chat</div>
-                <div class="card-body">
+                <div class="card-body chat-container">
                     <div class="mb-3">
                         <!-- Server -->
                         <div class="d-flex justify-content-start">
-                            <div class="bg-light p-2 rounded">
+                            <div class="bg-light p-2 rounded mt-1 mb-1 message-box">
                                 <p class="mb-0">Hello, how can I help you today?</p>
                             </div>
                         </div>
                         <!-- Client -->
                         <div class="d-flex justify-content-end">
-                            <div class="bg-primary text-white p-2 rounded">
+                            <div class="bg-primary text-white p-2 rounded mt-1 mb-1 message-box">
                                 <p class="mb-0">I'm looking for assistance with my project.</p>
                             </div>
                         </div>
@@ -28,10 +60,10 @@ home
                     </div>
                 </div>
                 <div class="card-footer text-muted">
-                    <form class="d-flex">
-                        <input type="text" class="form-control me-2" placeholder="Type your message...">
-                        <button type="button" class="btn btn-primary">Send</button>
-                    </form>
+                    <div class="text-area-container">
+                        <textarea class="form-control resize-none" placeholder="Type your message..." rows="1"></textarea>
+                        <button type="button" class="btn btn-primary send-btn">Send</button>
+                    </div>
                 </div>
             </div>
         </div>
