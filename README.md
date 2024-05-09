@@ -23,4 +23,3 @@ To successfully install and run this project, please follow these steps:
    ```
 
 After following these steps, you should be able to smoothly run the project and start testing the socket communication features. If you encounter any issues during the process, please check that each step has been configured correctly.
-```
