@@ -12,7 +12,6 @@ api_key = os.environ.get("OPENAI_API_KEY")
 
 message_queue = Queue();
 
-
 @app.route('/session/<session_id>', methods=['GET'])
 def get_session(session_id):
     session['current_session_id'] = session_id
@@ -50,6 +49,8 @@ def stream_chat():
                 # 从队列中获取消息
                 messages = message_queue.get()
                 print("Received messages:", messages)
+                if messages == '[END-SSE]':
+                    break
 
                 # 创建聊天完成请求并设置为流式
                 stream = client.chat.completions.create(
@@ -83,4 +84,6 @@ def response_commit():
     content = request.json.get('content', 'Default message if none provided')
     current_session_id = session['current_session_id']
     SessionService.add_message(current_session_id, 'assistant', content)
+
+    message_queue.put('[END-SSE]')
     return {"status": "Data received"}, 200

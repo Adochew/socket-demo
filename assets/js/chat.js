@@ -26,43 +26,59 @@ $(document).ready(function() {
         $('.chat-container').scrollTop($('.chat-container')[0].scrollHeight);
     }
 
-    // 监听来自服务器的事件
-    var eventSource = new EventSource('/update');
-    eventSource.onmessage = function(event) {
-        let lastDiv = $('.bg-light.p-2.rounded.mt-1.mb-1.message-box').last();
-        let pTag = lastDiv.find('p');
-        pTag[0].innerHTML += event.data;
-        // 滚动到聊天容器的底部以确保最新消息可见
-        $('.chat-container').scrollTop($('.chat-container')[0].scrollHeight);
-    };
+    function setupEventSource() {
+        // 关闭旧的 EventSource 如果存在
+        if (window.eventSource) {
+            window.eventSource.close();
+        }
 
-    // 监听事件流的开始
-    eventSource.addEventListener('start', function(event) {
-        console.log(event)
-        let lastDiv = $('.bg-light.p-2.rounded.mt-1.mb-1.message-box').last();
-        let pTag = lastDiv.find('p');
-        pTag[0].innerHTML = '';
-    });
+        window.eventSource = new EventSource('/update');
 
-    // 监听事件流的结束
-    eventSource.addEventListener('end', function(event) {
-        let lastDiv = $('.bg-light.p-2.rounded.mt-1.mb-1.message-box').last();
-        let pTag = lastDiv.find('p');
-        let message = pTag[0].innerHTML;
+        window.eventSource.onmessage = function(event) {
+            let lastDiv = $('.bg-light.p-2.rounded.mt-1.mb-1.message-box').last();
+            let pTag = lastDiv.find('p');
+            pTag[0].innerHTML += event.data;
+            // 滚动到聊天容器的底部以确保最新消息可见
+            $('.chat-container').scrollTop($('.chat-container')[0].scrollHeight);
+        };
 
-        $.ajax({
-            url: '/response_commit',  // 确保 URL 是正确的
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({ content: message }),
-            success: function() {
-                $('button').prop('disabled', false);
-            },
-            error: function(error) {
-                console.log('Error fetching the session messages:', error);
-            }
+        window.eventSource.onerror = function(event) {
+            window.eventSource.onerror = function(event) {
+                console.log('EventSource failed:', event);
+                window.eventSource.close();
+                setTimeout(setupEventSource, 5000); // 设置5秒后重连
+            };
+        };
+
+        window.eventSource.addEventListener('start', function(event) {
+            console.log(event)
+            let lastDiv = $('.bg-light.p-2.rounded.mt-1.mb-1.message-box').last();
+            let pTag = lastDiv.find('p');
+            pTag[0].innerHTML = '';
         });
-    });
+
+        window.eventSource.addEventListener('end', function(event) {
+            let lastDiv = $('.bg-light.p-2.rounded.mt-1.mb-1.message-box').last();
+            let pTag = lastDiv.find('p');
+            let message = pTag[0].innerHTML;
+
+            $.ajax({
+                url: '/response_commit',  // 确保 URL 是正确的
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ content: message }),
+                success: function() {
+                    $('button').prop('disabled', false);
+                    window.eventSource.close()
+                },
+                error: function(error) {
+                    console.log('Error fetching the session messages:', error);
+                }
+            });
+        });
+    }
+
+    // setupEventSource(); // 初始化 SSE 连接
 
     // 当发送按钮被点击
     $('button').click(function() {
@@ -72,6 +88,8 @@ $(document).ready(function() {
             displayMessage(message, 'user');  // 显示用户消息
             $('textarea').val('');  // 清空输入区域
             textarea.style.height = '38px';  // 重置输入区域高度
+
+            setupEventSource()
 
             // 发送消息到服务器并获取响应
             $.ajax({
