@@ -13,7 +13,7 @@ try:
 
     stream = client.chat.completions.create(
         model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": "Say this is a test"}],
+        messages=[{'role': 'user', 'content': 'user test'}, {'role': 'assistant', 'content': 'assistant test'}, {'role': 'user', 'content': '写一首诗歌'}, {'role': 'assistant', 'content': '在这个世界上<br><br>有太多的迷茫<br><br>沉默的夜晚<br><br>心中的烦恼<br><br>我在人群中徘徊<br><br>寻找那个温暖的怀抱<br><br>却发现自己孤单<br><br>无法抹去心头的忧愁<br><br>但愿在这个世界上<br><br>有一束光照亮我<br><br>让我找到前行的方向<br><br>让我找到自己的归宿<br><br>在这个世界上<br><br>我愿化身为风<br><br>吹散所有的纷扰<br><br>让心灵再次安宁开放。'}, {'role': 'user', 'content': '翻译成英文'}],
         stream=True,
     )
 

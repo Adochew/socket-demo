@@ -62,8 +62,6 @@ $(document).ready(function() {
                 console.log('Error fetching the session messages:', error);
             }
         });
-
-
     });
 
     // 当发送按钮被点击

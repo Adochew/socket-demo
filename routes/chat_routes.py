@@ -10,8 +10,7 @@ from services.session_service import SessionService
 load_dotenv()
 api_key = os.environ.get("OPENAI_API_KEY")
 
-# 创建一个全局的消息队列
-message_queue = Queue()
+message_queue = Queue();
 
 
 @app.route('/session/<session_id>', methods=['GET'])
@@ -28,7 +27,14 @@ def chat_stream():
     content = request.json.get('content', 'Default message if none provided')
     current_session_id = session['current_session_id']
     SessionService.add_message(current_session_id, 'user', content)
-    message_queue.put(content)
+
+    history = SessionService.get_history(current_session_id)
+    messages = [
+        {"role": msg['role'], "content": msg['content']}
+        for msg in history
+    ]
+
+    message_queue.put(messages)
     return {"status": "Data received"}, 200
 
 
@@ -36,29 +42,37 @@ def chat_stream():
 def stream_chat():
     # 定义一个生成器函数，用于流式发送数据
     def generate():
-        try:
-            # 创建 OpenAI 客户端
-            client = openai.OpenAI(api_key=api_key)
+        # 创建 OpenAI 客户端
+        client = openai.OpenAI(api_key=api_key)
 
-            while True:
-                content = message_queue.get()  # 阻塞直到消息到达
+        while True:
+            try:
+                # 从队列中获取消息
+                messages = message_queue.get()
+                print("Received messages:", messages)
+
+                # 创建聊天完成请求并设置为流式
                 stream = client.chat.completions.create(
                     model="gpt-3.5-turbo",
-                    messages=[{"role": "user", "content": content}],
+                    messages=messages,
                     stream=True,
+                    max_tokens=2000
                 )
 
+                # 开始发送事件
                 yield "event: start\n"
+                # 遍历流中的每个数据块
                 for chunk in stream:
-                    if chunk.choices[0].delta.content is not None:
-                        data = chunk.choices[0].delta.content.replace('\n', '<br/>');
+                    if chunk.choices[0].delta.content:
+                        data = chunk.choices[0].delta.content.replace('\n', '<br>')
                         yield f"data: {data}\n\n"
+
                 yield "event: end\n"
                 yield "data: \n\n"
 
-        except Exception as e:
-            # 发送错误信息
-            yield f"data:An error occurred: {e}\n\n"
+            except Exception as e:
+                print("An error occurred:", e)
+                yield f"data: An error occurred: {str(e)}\n\n"
 
     # 使用 Response 对象返回流式响应
     return Response(stream_with_context(generate()), content_type='text/event-stream')
@@ -66,7 +80,6 @@ def stream_chat():
 
 @app.route('/response_commit', methods=['POST'])
 def response_commit():
-
     content = request.json.get('content', 'Default message if none provided')
     current_session_id = session['current_session_id']
     SessionService.add_message(current_session_id, 'assistant', content)

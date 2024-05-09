@@ -1,23 +1,100 @@
-import os
-from dotenv import load_dotenv
-import openai
-
-# 加载 .env 文件中的环境变量
-load_dotenv()
-
-try:
-    # 设置 OpenAI 客户端
-    client = openai.OpenAI(
-        api_key=os.environ.get("OPENAI_API_KEY")
-    )
-
-    # 创建聊天完成
-    chat_completion = client.chat.completions.create(
-        messages=[{"role": "user", "content": "Say this is a test"}],
-        model="gpt-3.5-turbo",
-    )
-
-    # 输出 API 响应
-    print(chat_completion)
-except Exception as e:
-    print(f"An error occurred: {e}")
+# from routes import app
+# from flask import Response, stream_with_context, request, jsonify, session
+# import os
+# from dotenv import load_dotenv
+# import openai
+# from queue import Queue
+# from services.session_service import SessionService
+#
+# # 加载 .env 文件中的环境变量
+# load_dotenv()
+# api_key = os.environ.get("OPENAI_API_KEY")
+#
+# message_queue = Queue();
+#
+# @app.route('/session/<session_id>', methods=['GET'])
+# def get_session(session_id):
+#     session['current_session_id'] = session_id
+#     return jsonify(SessionService.get_history(session_id))
+#
+#
+# @app.route('/chat-stream', methods=['POST'])
+# def chat_stream():
+#     if 'current_session_id' not in session:
+#         return {"error": "No session ID found"}, 400
+#
+#     content = request.json.get('content', 'Default message if none provided')
+#     current_session_id = session['current_session_id']
+#     SessionService.add_message(current_session_id, 'user', content)
+#
+#     history = SessionService.get_history(current_session_id)
+#     messages = [
+#         {"role": msg['role'], "content": msg['content']}
+#         for msg in history
+#     ]
+#
+#     message_queue.put(messages)
+#     return {"status": "Data received"}, 200
+#
+#
+# @app.route('/update', methods=['GET'])
+# def stream_chat():
+#     # 定义一个生成器函数，用于流式发送数据
+#     def generate():
+#         # 创建 OpenAI 客户端
+#         client = openai.OpenAI(api_key=api_key)
+#
+#         while True:
+#             try:
+#                 # 从队列中获取消息
+#                 messages = message_queue.get()
+#                 print("Received messages:", messages)
+#
+#                 # 创建聊天完成请求并设置为流式
+#                 stream = client.chat.completions.create(
+#                     model="gpt-3.5-turbo",
+#                     messages=messages,
+#                     stream=True,
+#                     max_tokens=2000
+#                 )
+#
+#                 print("Stream created:", stream)
+#
+#                 # 开始发送事件
+#                 yield "event: start\n"
+#                 # 遍历流中的每个数据块
+#                 for chunk in stream:
+#                     print("Received chunk:", chunk)
+#                     if chunk.choices[0].delta.content:
+#                         data = chunk.choices[0].delta.content.replace('\n', '<br/>')
+#                         print("Formatted data:", data)
+#                         yield f"data: {data}\n\n"
+#
+#                     if chunk.choices[0].finish_reason:
+#                         print("Stream finished reason:", chunk.choices[0].finish_reason)
+#                         break
+#
+#                 yield "event: end\n"
+#                 yield "data: \n\n"
+#
+#             except Exception as e:
+#                 print("An error occurred:", e)
+#                 yield f"data: An error occurred: {str(e)}\n\n"
+#
+#     headers = {
+#         'Content-Type': 'text/event-stream',
+#         'Cache-Control': 'no-cache',
+#         'X-Accel-Buffering': 'no'
+#     }
+#
+#     # 使用 Response 对象返回流式响应
+#     return Response(stream_with_context(generate()), headers=headers)
+#
+#
+# @app.route('/response_commit', methods=['POST'])
+# def response_commit():
+#
+#     content = request.json.get('content', 'Default message if none provided')
+#     current_session_id = session['current_session_id']
+#     SessionService.add_message(current_session_id, 'assistant', content)
+#     return {"status": "Data received"}, 200
