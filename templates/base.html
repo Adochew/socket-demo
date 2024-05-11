@@ -6,6 +6,11 @@
     <link rel="stylesheet" href="/assets/plugins/bootstrap-5.3.3/bootstrap.min.css">
     <script src="/assets/plugins/jquery-3.7.1/jquery-3.7.1.min.js"></script>
     <script src="/assets/plugins/bootstrap-5.3.3/bootstrap.bundle.min.js"></script>
+    <style>
+        body{
+            background-color: #fcfcfc;
+        }
+    </style>
     {% block script %}
     {% endblock %}
     <title>
@@ -14,7 +19,7 @@
     </title>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg bg-body-tertiary ps-5 pe-5">
+<nav class="navbar navbar-expand-lg bg-body-tertiary ps-5 pe-5 " data-bs-theme="dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">ChatGPT</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
@@ -32,7 +37,7 @@
             </ul>
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="#">Login</a>
+                    <a class="nav-link active" aria-current="page" href="#">Settings</a>
                 </li>
             </ul>
         </div>

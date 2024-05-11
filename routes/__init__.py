@@ -14,4 +14,4 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # 关闭对模型修改的
 # 初始化 SQLAlchemy
 db = SQLAlchemy(app)
 
-from routes import user_routes, chat_routes
+from routes import user_routes, chat_routes, session_routes

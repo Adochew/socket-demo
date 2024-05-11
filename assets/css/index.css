@@ -1,0 +1,65 @@
+.chat-container {
+    max-height: 600px;
+    overflow-y: auto;
+}
+.message-box {
+    max-width: 80%;
+}
+.text-area-container {
+    position: relative;
+    display: flex;
+}
+.resize-none {
+    resize: none;
+    overflow: hidden;
+    height: auto;
+    min-height: 38px;
+}
+.send-btn {
+    position: absolute;
+    right: 5px;
+    bottom: 4px;
+    height: 30px;
+    padding: initial;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+.session-container{
+    width: 22%
+}
+.blank-container{
+    width: 5%
+}
+.session:hover{
+    background-color: #f4f4f4;
+}
+.selected {
+    background-color: #f0f0f0;
+}
+.list-group-item {
+    padding-right: 35px;
+    position: relative;
+}
+.list-group-item input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+}
+#deleteBtn {
+    display: none;
+    position: absolute;
+    right: 20px;
+    cursor: pointer;
+    z-index: 100;
+    width: 9px;
+    height: 30px;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+}
+.delete-icon{
+    width: 20px;
+}
+#newSession{
+    margin-bottom: 12px;
+    width: 100%;
+}

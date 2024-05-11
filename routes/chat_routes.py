@@ -10,12 +10,8 @@ from services.session_service import SessionService
 load_dotenv()
 api_key = os.environ.get("OPENAI_API_KEY")
 
+# 维护全局消息队列
 message_queue = Queue();
-
-@app.route('/session/<session_id>', methods=['GET'])
-def get_session(session_id):
-    session['current_session_id'] = session_id
-    return jsonify(SessionService.get_history(session_id))
 
 
 @app.route('/chat-stream', methods=['POST'])
