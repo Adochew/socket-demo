@@ -15,5 +15,6 @@ class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     session_id = db.Column(db.Integer, db.ForeignKey('sessions.session_id'))
     role = db.Column(db.String(255))
+    type = db.Column(db.String(20))
     content = db.Column(db.Text)
     timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())

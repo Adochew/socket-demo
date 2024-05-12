@@ -1,6 +1,9 @@
 $(document).ready(function() {
     // 全局变量锁
-    var lock = true;
+    var lock = false;
+    var imageNext = false;
+    var tempText = '';
+    var tempImage = '';
 
     // 输入框
     var textarea = document.querySelector('.resize-none');
@@ -17,14 +20,21 @@ $(document).ready(function() {
     }
 
     // 聊天界面显示消息
-    function displayMessage(message, align) {
-        message = message.replace(/\n/g, '<br>');
-        let messageAlign = (align === 'assistant') ? 'justify-content-start' : 'justify-content-end';
-        let messageBox = '<div class="d-flex ' + messageAlign + '"><div class="bg-light p-2 rounded mt-1 mb-1 message-box"><p class="mb-0">' + message + '</p></div></div>';
-        if (align === 'user') {
-            messageBox = '<div class="d-flex ' + messageAlign + '"><div class="bg-primary text-white p-2 rounded mt-1 mb-1 message-box"><p class="mb-0">' + message + '</p></div></div>';
+    function displayMessage(message, align, type) {
+        let messageBox
+        if(type === 'text'){
+            message = message.replace(/\n/g, '<br>');
+            let messageAlign = (align === 'assistant') ? 'justify-content-start' : 'justify-content-end';
+            messageBox = '<div class="d-flex ' + messageAlign + '"><div class="bg-light p-2 rounded mt-1 mb-1 message-box"><p class="mb-0">' + message + '</p></div></div>';
+            if (align === 'user') {
+                messageBox = '<div class="d-flex ' + messageAlign + '"><div class="bg-primary text-white p-2 rounded mt-1 mb-1 message-box"><p class="mb-0">' + message + '</p></div></div>';
+            }
+
+        }else {
+            messageBox = '<div class="d-flex justify-content-start"><div class="bg-light p-2 rounded mt-1 mb-1 message-box"><p class="mb-0"><img alt="image" src="' + message + '"></p></div></div>';
         }
         $('.card-body.chat-container').append(messageBox); // 将消息添加到聊天界面
+
         // 滚动到最新消息
         $('.chat-container').scrollTop($('.chat-container')[0].scrollHeight);
     }
@@ -38,9 +48,18 @@ $(document).ready(function() {
         window.eventSource = new EventSource('/update');
 
         window.eventSource.onmessage = function(event) {
-            let lastDiv = $('.bg-light.p-2.rounded.mt-1.mb-1.message-box').last();
-            let pTag = lastDiv.find('p');
-            pTag[0].innerHTML += event.data;
+            if(imageNext){
+                let lastDiv = $('.bg-light.p-2.rounded.mt-1.mb-1.message-box').last();
+                lastDiv.remove();
+                imageNext = false;
+                tempImage = event.data;
+                displayMessage(tempImage, 'assistant', 'image')
+            }else {
+                tempText += event.data;
+                let lastDiv = $('.bg-light.p-2.rounded.mt-1.mb-1.message-box').last();
+                let pTag = lastDiv.find('p');
+                pTag[0].innerHTML += event.data;
+            }
             // 滚动到聊天容器的底部以确保最新消息可见
             $('.chat-container').scrollTop($('.chat-container')[0].scrollHeight);
         };
@@ -54,24 +73,42 @@ $(document).ready(function() {
         };
 
         window.eventSource.addEventListener('start', function(event) {
-            console.log(event)
             let lastDiv = $('.bg-light.p-2.rounded.mt-1.mb-1.message-box').last();
             let pTag = lastDiv.find('p');
             pTag[0].innerHTML = '';
         });
 
         window.eventSource.addEventListener('end', function(event) {
-            let lastDiv = $('.bg-light.p-2.rounded.mt-1.mb-1.message-box').last();
-            let pTag = lastDiv.find('p');
-            let message = pTag[0].innerHTML;
-
             $.ajax({
-                url: '/response_commit',  // 确保 URL 是正确的
+                url: '/response_commit',
                 type: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({ content: message }),
+                data: JSON.stringify({ content: tempText }),
                 success: function() {
-                    lock = true;
+                    tempText = '';
+                    lock = false;
+                    $('button').prop('disabled', false);
+                    window.eventSource.close()
+                },
+                error: function(error) {
+                    console.log('Error fetching the session messages:', error);
+                }
+            });
+        });
+
+        window.eventSource.addEventListener('image', function(event) {
+            imageNext = true;
+        });
+
+        window.eventSource.addEventListener('end-image', function(event) {
+            $.ajax({
+                url: '/image_commit',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ content: tempImage }),
+                success: function() {
+                    tempImage = '';
+                    lock = false;
                     $('button').prop('disabled', false);
                     window.eventSource.close()
                 },
@@ -84,14 +121,14 @@ $(document).ready(function() {
 
     // 当发送按钮被点击
     $('button').click(function() {
-        if (lock === false) { return; }
+        if (lock) { return; }
 
         var message = $('textarea').val();
         if (message.trim() !== '') {
-            lock = false;
+            lock = true;
             $('button').prop('disabled', true);
 
-            displayMessage(message, 'user');  // 显示用户消息
+            displayMessage(message, 'user', 'text');  // 显示用户消息
             $('textarea').val('');  // 清空输入区域
             textarea.style.height = '38px';  // 重置输入区域高度
 
@@ -104,10 +141,10 @@ $(document).ready(function() {
                 contentType: 'application/json',
                 data: JSON.stringify({ content: message }),
                 success: function() {
-                    displayMessage('...', 'assistant');
+                    displayMessage('...', 'assistant', 'text');
                 },
                 error: function() {
-                    displayMessage('Sorry, there was an error.', 'assistant');
+                    displayMessage('Sorry, there was an error.', 'assistant', 'text');
                 }
             });
         }
@@ -116,7 +153,7 @@ $(document).ready(function() {
     //session
     // 双击修改Session Info
     $('#sessionList').on('dblclick', '.session', function() {
-        if (lock === false) { return; }
+        if (lock) { return; }
 
         let $this = $(this)
         let currentText = $(this).text();
@@ -158,7 +195,7 @@ $(document).ready(function() {
 
     // 单击选中session
     $('#sessionList').on('click', '.session', function() {
-        if (lock === false) { return; }
+        if (lock) { return; }
 
         $this = $(this)
         $('.session').removeClass('selected');
@@ -219,7 +256,7 @@ $(document).ready(function() {
 
     // new session
     $('#newSession').on('click',function (){
-        if (lock === false) { return; }
+        if (lock) { return; }
 
         $.ajax({
             url: '/session',
@@ -245,7 +282,7 @@ $(document).ready(function() {
             type: 'GET',
             success: function(data) {
                 data.forEach(msg => {
-                    displayMessage(msg.content, msg.role)
+                    displayMessage(msg.content, msg.role, msg.type)
                 });
             },
             error: function(error) {

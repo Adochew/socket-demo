@@ -23,6 +23,10 @@ def chat_stream():
     current_session_id = session['current_session_id']
     SessionService.add_message(current_session_id, 'user', content)
 
+    if '图像' in content or 'image' in content:
+        message_queue.put('[IMAGE]')
+        message_queue.put(content)
+
     history = SessionService.get_history(current_session_id)
     messages = [
         {"role": msg['role'], "content": msg['content']}
@@ -46,6 +50,22 @@ def stream_chat():
                 messages = message_queue.get()
                 print("Received messages:", messages)
                 if messages == '[END-SSE]':
+                    break
+                elif messages == '[IMAGE]':
+                    yield "event: image\n"
+                    yield "data: \n\n"
+                    prompt = message_queue.get()
+                    response = client.images.generate(
+                        model="dall-e-2",
+                        prompt=prompt,
+                        size="256x256",
+                        quality="standard",
+                        n=1,
+                    )
+                    image_url = response.data[0].url
+                    yield f"data: {image_url}\n\n"
+                    yield "event: end-image\n"
+                    yield "data: \n\n"
                     break
 
                 # 创建聊天完成请求并设置为流式
@@ -79,7 +99,16 @@ def stream_chat():
 def response_commit():
     content = request.json.get('content', 'Default message if none provided')
     current_session_id = session['current_session_id']
-    SessionService.add_message(current_session_id, 'assistant', content)
+    SessionService.add_message(current_session_id, 'assistant', content, 'text')
 
     message_queue.put('[END-SSE]')
+    return {"status": "Data received"}, 200
+
+
+@app.route('/image_commit', methods=['POST'])
+def image_commit():
+    content = request.json.get('content', 'Default message if none provided')
+    current_session_id = session['current_session_id']
+    SessionService.add_message(current_session_id, 'assistant', content, 'image')
+
     return {"status": "Data received"}, 200

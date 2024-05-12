@@ -42,12 +42,12 @@ class SessionService:
             db.session.commit()
 
     @staticmethod
-    def add_message(session_id, role, content):
+    def add_message(session_id, role, content, type='text'):
         session = Session.query.filter_by(session_id=session_id).first()
         if not session:
             session = Session(session_id=session_id)
             db.session.add(session)
-        message = Message(session_id=session_id, role=role, content=content)
+        message = Message(session_id=session_id, role=role, content=content, type=type)
         db.session.add(message)
         db.session.commit()
 
@@ -57,6 +57,7 @@ class SessionService:
         if session:
             history = [
                 {'role': msg.role,
+                 'type': msg.type,
                  'content': msg.content,
                  'timestamp': msg.timestamp.strftime('%Y-%m-%d %H:%M:%S')}
                 for msg in session.messages
