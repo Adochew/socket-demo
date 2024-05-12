@@ -16,6 +16,7 @@ CREATE TABLE `messages` (
     `session_id` INT NOT NULL,
     `role` VARCHAR(255),
     `content` TEXT,
+    `type` VARCHAR(20) DEFAULT 'text',
     `timestamp` DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT `fk_messages_sessions` FOREIGN KEY (`session_id`) REFERENCES `sessions`(`session_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
