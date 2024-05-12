@@ -21,6 +21,8 @@ $(document).ready(function() {
 
     // 聊天界面显示消息
     function displayMessage(message, align, type) {
+        $('.empty-div').remove();
+
         let messageBox
         if(type === 'text'){
             message = message.replace(/\n/g, '<br>');
@@ -262,11 +264,12 @@ $(document).ready(function() {
             url: '/session',
             type: 'POST',
             success: function (data){
+                deleteBtn.hide();
                 let sessionHTML = '<li class="list-group-item session" data-session-id="' + data.session_id + '">new session</li>';
                 $('#sessionList').prepend(sessionHTML);
                 $('.session').removeClass('selected');
                 $('#sessionList .session:first').addClass('selected');
-                $('.chat-container').empty();
+                $('.chat-container').html('<div class="empty-div"><h3>Empty Session</h3></div>')
             },
             error: function(error) {
                 console.log('Error add the session:', error);
@@ -281,6 +284,9 @@ $(document).ready(function() {
             url: url,
             type: 'GET',
             success: function(data) {
+                if(data.length === 0){
+                    $('.chat-container').html('<div class="empty-div"><h3>Empty Session</h3></div>')
+                }
                 data.forEach(msg => {
                     displayMessage(msg.content, msg.role, msg.type)
                 });

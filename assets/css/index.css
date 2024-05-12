@@ -63,3 +63,8 @@
     margin-bottom: 12px;
     width: 100%;
 }
+.empty-div{
+    text-align: center;
+    color: grey;
+    margin: 30px 0;
+}
