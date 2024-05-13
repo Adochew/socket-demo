@@ -20,6 +20,8 @@ To successfully install and run this project, please follow these steps:
    Finally, create a `.env` file in the project root directory that contains a key environmental variable for storing your OpenAI API key. The content should look like this:
    ```
    OPENAI_API_KEY=your_api_key
+   ACCESS_KEY_ID=your_aliyun_id
+   ACCESS_KEY_SECRET=your_aliyun_secret
    ```
 
 After following these steps, you should be able to smoothly run the project and start testing the socket communication features. If you encounter any issues during the process, please check that each step has been configured correctly.

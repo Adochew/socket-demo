@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import openai
 from queue import Queue
 from services.session_service import SessionService
+from utils.OSSUtil import OSSUtil
 
 # 加载 .env 文件中的环境变量
 load_dotenv()
@@ -62,7 +63,7 @@ def stream_chat():
                         quality="standard",
                         n=1,
                     )
-                    image_url = response.data[0].url
+                    image_url = OSSUtil.upload_image(response.data[0].url)
                     yield f"data: {image_url}\n\n"
                     yield "event: end-image\n"
                     yield "data: \n\n"
