@@ -1,5 +1,7 @@
 # Socket Demo: Enhanced Chat Application
 
+[中文版本](README_zh.md)
+
 #### Introduction
 This project showcases an advanced chat application that integrates third-party AI chat interfaces for conversations. The system supports long-lasting connections for stream-like dialogues and incorporates sophisticated data structures to store conversational history and context. This guide details the setup required to get the project running.
 
