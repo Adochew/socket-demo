@@ -12,7 +12,7 @@ load_dotenv()
 api_key = os.environ.get("OPENAI_API_KEY")
 
 # 维护全局消息队列
-message_queue = Queue();
+message_queue = Queue()
 
 
 @app.route('/chat-stream', methods=['POST'])
@@ -100,7 +100,7 @@ def stream_chat():
 def response_commit():
     content = request.json.get('content', 'Default message if none provided')
     current_session_id = session['current_session_id']
-    SessionService.add_message(current_session_id, 'assistant', content, 'text')
+    SessionService.add_message(current_session_id, 'assistant', content.replace('<br>', '\n'), 'text')
 
     message_queue.put('[END-SSE]')
     return {"status": "Data received"}, 200
