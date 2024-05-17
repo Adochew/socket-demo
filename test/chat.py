@@ -1,100 +1,27 @@
-# from routes import app
-# from flask import Response, stream_with_context, request, jsonify, session
-# import os
-# from dotenv import load_dotenv
-# import openai
-# from queue import Queue
-# from services.session_service import SessionService
-#
-# # 加载 .env 文件中的环境变量
-# load_dotenv()
-# api_key = os.environ.get("OPENAI_API_KEY")
-#
-# message_queue = Queue();
-#
-# @app.route('/session/<session_id>', methods=['GET'])
-# def get_session(session_id):
-#     session['current_session_id'] = session_id
-#     return jsonify(SessionService.get_history(session_id))
-#
-#
-# @app.route('/chat-stream', methods=['POST'])
-# def chat_stream():
-#     if 'current_session_id' not in session:
-#         return {"error": "No session ID found"}, 400
-#
-#     content = request.json.get('content', 'Default message if none provided')
-#     current_session_id = session['current_session_id']
-#     SessionService.add_message(current_session_id, 'user', content)
-#
-#     history = SessionService.get_history(current_session_id)
-#     messages = [
-#         {"role": msg['role'], "content": msg['content']}
-#         for msg in history
-#     ]
-#
-#     message_queue.put(messages)
-#     return {"status": "Data received"}, 200
-#
-#
-# @app.route('/update', methods=['GET'])
-# def stream_chat():
-#     # 定义一个生成器函数，用于流式发送数据
-#     def generate():
-#         # 创建 OpenAI 客户端
-#         client = openai.OpenAI(api_key=api_key)
-#
-#         while True:
-#             try:
-#                 # 从队列中获取消息
-#                 messages = message_queue.get()
-#                 print("Received messages:", messages)
-#
-#                 # 创建聊天完成请求并设置为流式
-#                 stream = client.chat.completions.create(
-#                     model="gpt-3.5-turbo",
-#                     messages=messages,
-#                     stream=True,
-#                     max_tokens=2000
-#                 )
-#
-#                 print("Stream created:", stream)
-#
-#                 # 开始发送事件
-#                 yield "event: start\n"
-#                 # 遍历流中的每个数据块
-#                 for chunk in stream:
-#                     print("Received chunk:", chunk)
-#                     if chunk.choices[0].delta.content:
-#                         data = chunk.choices[0].delta.content.replace('\n', '<br/>')
-#                         print("Formatted data:", data)
-#                         yield f"data: {data}\n\n"
-#
-#                     if chunk.choices[0].finish_reason:
-#                         print("Stream finished reason:", chunk.choices[0].finish_reason)
-#                         break
-#
-#                 yield "event: end\n"
-#                 yield "data: \n\n"
-#
-#             except Exception as e:
-#                 print("An error occurred:", e)
-#                 yield f"data: An error occurred: {str(e)}\n\n"
-#
-#     headers = {
-#         'Content-Type': 'text/event-stream',
-#         'Cache-Control': 'no-cache',
-#         'X-Accel-Buffering': 'no'
-#     }
-#
-#     # 使用 Response 对象返回流式响应
-#     return Response(stream_with_context(generate()), headers=headers)
-#
-#
-# @app.route('/response_commit', methods=['POST'])
-# def response_commit():
-#
-#     content = request.json.get('content', 'Default message if none provided')
-#     current_session_id = session['current_session_id']
-#     SessionService.add_message(current_session_id, 'assistant', content)
-#     return {"status": "Data received"}, 200
+import os
+from dotenv import load_dotenv
+import openai
+
+# 加载 .env 文件中的环境变量
+load_dotenv()
+
+try:
+    # 设置 OpenAI 客户端
+    client = openai.OpenAI(
+        api_key=os.environ.get("OPENAI_API_KEY")
+    )
+
+    stream = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{'role': 'user', 'content': 'user test'}, {'role': 'assistant', 'content': 'assistant test'}, {'role': 'user', 'content': '写一首诗歌'}, {'role': 'assistant', 'content': '在这个世界上<br><br>有太多的迷茫<br><br>沉默的夜晚<br><br>心中的烦恼<br><br>我在人群中徘徊<br><br>寻找那个温暖的怀抱<br><br>却发现自己孤单<br><br>无法抹去心头的忧愁<br><br>但愿在这个世界上<br><br>有一束光照亮我<br><br>让我找到前行的方向<br><br>让我找到自己的归宿<br><br>在这个世界上<br><br>我愿化身为风<br><br>吹散所有的纷扰<br><br>让心灵再次安宁开放。'}, {'role': 'user', 'content': '翻译成英文'}],
+        stream=True,
+    )
+
+    for chunk in stream:
+        if chunk.choices[0].delta.content is not None:
+            print(chunk.choices[0].delta.content, end="")
+
+    print(stream)
+
+except Exception as e:
+    print(f"An error occurred: {e}")

@@ -5,6 +5,17 @@ $(document).ready(function() {
     var tempText = '';
     var tempImage = '';
 
+    marked.setOptions({
+        renderer: new marked.Renderer(),
+        gfm: true,
+        tables: true,
+        breaks: true,
+        pedantic: false,
+        sanitize: true,
+        smartLists: true,
+        smartypants: false
+    });
+
     // 输入框
     var textarea = document.querySelector('.resize-none');
     textarea.addEventListener('input', adjustHeight);
@@ -25,17 +36,22 @@ $(document).ready(function() {
 
         let messageBox
         if(type === 'text'){
-            message = message.replace(/\n/g, '<br>');
+            //message = message.replace(/\n/g, '<br>');
+
+            message = marked.parse(message)
             let messageAlign = (align === 'assistant') ? 'justify-content-start' : 'justify-content-end';
-            messageBox = '<div class="d-flex ' + messageAlign + '"><div class="bg-light p-2 rounded mt-1 mb-1 message-box"><p class="mb-0">' + message + '</p></div></div>';
+            messageBox = '<div class="d-flex ' + messageAlign + '"><div class="bg-light p-2 rounded mt-1 mb-1 message-box">' + message + '</div></div>';
             if (align === 'user') {
-                messageBox = '<div class="d-flex ' + messageAlign + '"><div class="bg-primary text-white p-2 rounded mt-1 mb-1 message-box"><p class="mb-0">' + message + '</p></div></div>';
+                messageBox = '<div class="d-flex ' + messageAlign + '"><div class="bg-primary text-white p-2 rounded mt-1 mb-1 message-box">' + message + '</div></div>';
             }
 
         }else {
-            messageBox = '<div class="d-flex justify-content-start"><div class="bg-light p-2 rounded mt-1 mb-1 message-box"><p class="mb-0"><img alt="image" src="' + message + '"></p></div></div>';
+            messageBox = '<div class="d-flex justify-content-start"><div class="bg-light p-2 rounded mt-1 mb-1 message-box"><img alt="image" src="' + message + '"></div></div>';
         }
         $('.card-body.chat-container').append(messageBox); // 将消息添加到聊天界面
+
+        let lastParagraph = $(".message-box").last().find("p:last");
+        lastParagraph.css('margin-bottom', 0)
 
         // 滚动到最新消息
         $('.chat-container').scrollTop($('.chat-container')[0].scrollHeight);
@@ -68,19 +84,26 @@ $(document).ready(function() {
 
         window.eventSource.onerror = function(event) {
             window.eventSource.onerror = function(event) {
-                console.log('EventSource failed:', event);
                 window.eventSource.close();
                 setTimeout(setupEventSource, 5000); // 设置5秒后重连
             };
         };
 
         window.eventSource.addEventListener('start', function(event) {
+            tempText += event.data;
             let lastDiv = $('.bg-light.p-2.rounded.mt-1.mb-1.message-box').last();
             let pTag = lastDiv.find('p');
-            pTag[0].innerHTML = '';
+            pTag[0].innerHTML = event.data;
         });
 
         window.eventSource.addEventListener('end', function(event) {
+
+            let lastDiv = $('.bg-light.p-2.rounded.mt-1.mb-1.message-box').last();
+            let pTag = lastDiv.find('p');
+            pTag[0].innerHTML = marked.parse(pTag[0].innerHTML.replace(/<br\s*\/?>/ig, '\n'));
+            let lastParagraph = $(".message-box").last().find("p:last");
+            lastParagraph.css('margin-bottom', 0)
+
             $.ajax({
                 url: '/response_commit',
                 type: 'POST',
@@ -286,10 +309,12 @@ $(document).ready(function() {
             success: function(data) {
                 if(data.length === 0){
                     $('.chat-container').html('<div class="empty-div"><h3>Empty Session</h3></div>')
+                }else {
+                    $('.chat-container').empty()
+                    data.forEach(msg => {
+                        displayMessage(msg.content, msg.role, msg.type)
+                    });
                 }
-                data.forEach(msg => {
-                    displayMessage(msg.content, msg.role, msg.type)
-                });
             },
             error: function(error) {
                 console.log('Error fetching the session messages:', error);

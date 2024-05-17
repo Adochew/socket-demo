@@ -11,6 +11,7 @@ def get_sessions():
 @app.route('/session', methods=['POST'])
 def new_session():
     session_id = SessionService.add_session()
+    session['current_session_id'] = session_id
     return {"session_id": session_id}, 200
 
 
